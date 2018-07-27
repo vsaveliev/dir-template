@@ -7,4 +7,8 @@ go:
   - master
 
 script:
- - go test -v ./...
+ - go test -race -v ./...
+
+after_success:
+  - make cover
+  - bash <(curl -s https://codecov.io/bash)
