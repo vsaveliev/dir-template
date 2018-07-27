@@ -8,26 +8,27 @@ import (
 
 // TestCopyFile checks that a file will be copied from source to destination path
 func TestCopyFile(t *testing.T) {
-	srcFile := "/tmp/test-copy-file1"
-	destFile := "/tmp/test-copy-file2"
+	srcFilePath := "/tmp/test-copy-file1"
+	destFilePath := "/tmp/test-copy-file2"
 
 	expectedText := "test\ncopy\nfile\n"
-	err := ioutil.WriteFile(srcFile, []byte(expectedText), 0644)
+	err := ioutil.WriteFile(srcFilePath, []byte(expectedText), 0644)
 	if err != nil {
 		t.Fatalf("Сannot create src file: %s", err)
 	}
-
-	err = CopyFile(srcFile, destFile)
 	defer func() {
-		// clean data after test
-		os.Remove(srcFile)
-		os.Remove(destFile)
+		os.Remove(srcFilePath)
 	}()
-	if err != nil {
-		t.Fatalf("Cannot copy file: %s", err)
-	}
 
-	bytes, err := ioutil.ReadFile(destFile)
+	err = CopyFile(srcFilePath, destFilePath)
+	if err != nil {
+		t.Fatalf("Cannot copy file %s --> %s: %s", srcFilePath, destFilePath, err)
+	}
+	defer func() {
+		os.Remove(destFilePath)
+	}()
+
+	bytes, err := ioutil.ReadFile(destFilePath)
 	if err != nil {
 		t.Fatalf("Сannot read dest file: %s", err)
 	}

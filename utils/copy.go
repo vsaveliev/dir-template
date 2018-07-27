@@ -8,30 +8,39 @@ import (
 
 // CopyFile copies file from srcFilePath to destFilePath with current filemode
 func CopyFile(srcFilePath, destFilePath string) (err error) {
+	if srcFilePath == "" {
+		return fmt.Errorf("src file path is empty")
+	}
+
+	if destFilePath == "" {
+		return fmt.Errorf("dest file path is empty")
+	}
+
 	srcFile, err := os.Open(srcFilePath)
 	if err != nil {
 		return fmt.Errorf("cannot open src file: %s", err)
 	}
 	defer srcFile.Close()
 
-	destfile, err := os.Create(destFilePath)
-	if err != nil {
-		return fmt.Errorf("cannot create dest file: %s", err)
-	}
-	defer destfile.Close()
-
-	_, err = io.Copy(destfile, srcFile)
-	if err != nil {
-		return fmt.Errorf("cannot copy file: %s", err)
-	}
-
-	sourceinfo, err := os.Stat(srcFilePath)
+	srcFileInfo, err := os.Stat(srcFilePath)
 	if err != nil {
 		return fmt.Errorf("cannot get info of src file: %s", err)
 	}
 
-	err = os.Chmod(destFilePath, sourceinfo.Mode())
+	destFile, err := os.Create(destFilePath)
 	if err != nil {
+		return fmt.Errorf("cannot create dest file: %s", err)
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile)
+	if err != nil {
+		return fmt.Errorf("cannot copy file: %s", err)
+	}
+
+	err = os.Chmod(destFilePath, srcFileInfo.Mode())
+	if err != nil {
+		os.Remove(destFilePath)
 		return fmt.Errorf("cannot copy file mode: %s", err)
 	}
 
@@ -53,13 +62,14 @@ func CopyDir(srcDirPath, destDirPath string) error {
 		return fmt.Errorf("cannot get info of src dir: %s", err)
 	}
 
-	directory, err := os.Open(srcDirPath)
+	srcDir, err := os.Open(srcDirPath)
 	if err != nil {
 		return fmt.Errorf("cannot open src dir: %s", err)
 	}
-	defer directory.Close()
+	defer srcDir.Close()
 
-	objects, err := directory.Readdir(-1)
+	// objects = files or child directories
+	dirObjects, err := srcDir.Readdir(-1)
 	if err != nil {
 		return fmt.Errorf("cannot read src dir: %s", err)
 	}
@@ -69,20 +79,24 @@ func CopyDir(srcDirPath, destDirPath string) error {
 		return fmt.Errorf("cannot create dest dir %s: %s", destDirPath, err)
 	}
 
-	for _, obj := range objects {
-		srcObjectPath := srcDirPath + "/" + obj.Name()
-		destObjectPath := destDirPath + "/" + obj.Name()
+	for _, obj := range dirObjects {
+		srcObjPath := srcDirPath + "/" + obj.Name()
+		destObjPath := destDirPath + "/" + obj.Name()
 
-		if obj.IsDir() {
-			err = CopyDir(srcObjectPath, destObjectPath)
+		if !obj.IsDir() {
+			err = CopyFile(srcObjPath, destObjPath)
 			if err != nil {
+				os.Remove(destDirPath)
 				return err
 			}
-		} else {
-			err = CopyFile(srcObjectPath, destObjectPath)
-			if err != nil {
-				return err
-			}
+
+			continue
+		}
+
+		err = CopyDir(srcObjPath, destObjPath)
+		if err != nil {
+			os.Remove(destDirPath)
+			return err
 		}
 	}
 
