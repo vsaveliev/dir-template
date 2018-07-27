@@ -10,21 +10,6 @@ import (
 	"github.com/vsaveliev/dirtemplate/utils"
 )
 
-// Execute generates code for some language from templates using config
-func (d DirTemplate) Execute() error {
-	err := d.copyDir()
-	if err != nil {
-		return err
-	}
-
-	err = d.executeDir()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (d DirTemplate) copyDir() error {
 	_, err := os.Stat(d.Dest)
 	if err == nil {
