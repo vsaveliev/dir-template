@@ -6,28 +6,28 @@ import (
 	"os"
 )
 
-// CopyFile copies file from srcFilePath to destFilePath with current filemode
-func CopyFile(srcFilePath, destFilePath string) (err error) {
-	if srcFilePath == "" {
-		return fmt.Errorf("src file path is empty")
+// CopyFile copies file from src to dest (with file mode)
+func CopyFile(src, dest string) (err error) {
+	if src == "" {
+		return fmt.Errorf("src file is empty")
 	}
 
-	if destFilePath == "" {
-		return fmt.Errorf("dest file path is empty")
+	if dest == "" {
+		return fmt.Errorf("dest file is empty")
 	}
 
-	srcFile, err := os.Open(srcFilePath)
+	srcFile, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("cannot open src file: %s", err)
 	}
 	defer srcFile.Close()
 
-	srcFileInfo, err := os.Stat(srcFilePath)
+	srcFileInfo, err := os.Stat(src)
 	if err != nil {
 		return fmt.Errorf("cannot get info of src file: %s", err)
 	}
 
-	destFile, err := os.Create(destFilePath)
+	destFile, err := os.Create(dest)
 	if err != nil {
 		return fmt.Errorf("cannot create dest file: %s", err)
 	}
@@ -38,31 +38,31 @@ func CopyFile(srcFilePath, destFilePath string) (err error) {
 		return fmt.Errorf("cannot copy file: %s", err)
 	}
 
-	err = os.Chmod(destFilePath, srcFileInfo.Mode())
+	err = os.Chmod(dest, srcFileInfo.Mode())
 	if err != nil {
-		os.Remove(destFilePath)
+		os.Remove(dest)
 		return fmt.Errorf("cannot copy file mode: %s", err)
 	}
 
 	return nil
 }
 
-// CopyDir copies dir from srcDirPath to destDirPath with current filemodes
-func CopyDir(srcDirPath, destDirPath string) error {
-	if srcDirPath == "" {
-		return fmt.Errorf("src path is empty")
+// CopyDir copies dir from src to desc (with file mode)
+func CopyDir(src, dest string) error {
+	if src == "" {
+		return fmt.Errorf("src dir is empty")
 	}
 
-	if destDirPath == "" {
-		return fmt.Errorf("dest path is empty")
+	if dest == "" {
+		return fmt.Errorf("dest dir is empty")
 	}
 
-	dirInfo, err := os.Stat(srcDirPath)
+	dirInfo, err := os.Stat(src)
 	if err != nil {
 		return fmt.Errorf("cannot get info of src dir: %s", err)
 	}
 
-	srcDir, err := os.Open(srcDirPath)
+	srcDir, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("cannot open src dir: %s", err)
 	}
@@ -74,19 +74,19 @@ func CopyDir(srcDirPath, destDirPath string) error {
 		return fmt.Errorf("cannot read src dir: %s", err)
 	}
 
-	err = os.MkdirAll(destDirPath, dirInfo.Mode())
+	err = os.MkdirAll(dest, dirInfo.Mode())
 	if err != nil {
-		return fmt.Errorf("cannot create dest dir %s: %s", destDirPath, err)
+		return fmt.Errorf("cannot create dest dir %s: %s", dest, err)
 	}
 
 	for _, obj := range dirObjects {
-		srcObjPath := srcDirPath + "/" + obj.Name()
-		destObjPath := destDirPath + "/" + obj.Name()
+		srcObjPath := src + "/" + obj.Name()
+		destObjPath := dest + "/" + obj.Name()
 
 		if !obj.IsDir() {
 			err = CopyFile(srcObjPath, destObjPath)
 			if err != nil {
-				os.Remove(destDirPath)
+				os.Remove(dest)
 				return err
 			}
 
@@ -95,7 +95,7 @@ func CopyDir(srcDirPath, destDirPath string) error {
 
 		err = CopyDir(srcObjPath, destObjPath)
 		if err != nil {
-			os.Remove(destDirPath)
+			os.Remove(dest)
 			return err
 		}
 	}

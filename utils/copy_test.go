@@ -8,27 +8,27 @@ import (
 
 // TestCopyFile checks that a file will be copied from source to destination path
 func TestCopyFile(t *testing.T) {
-	srcFilePath := "/tmp/test-copy-file1"
-	destFilePath := "/tmp/test-copy-file2"
+	src := "/tmp/test-copy-file1"
+	dest := "/tmp/test-copy-file2"
 
 	expectedText := "test\ncopy\nfile\n"
-	err := ioutil.WriteFile(srcFilePath, []byte(expectedText), 0644)
+	err := ioutil.WriteFile(src, []byte(expectedText), 0644)
 	if err != nil {
 		t.Fatalf("Сannot create src file: %s", err)
 	}
 	defer func() {
-		os.Remove(srcFilePath)
+		os.Remove(src)
 	}()
 
-	err = CopyFile(srcFilePath, destFilePath)
+	err = CopyFile(src, dest)
 	if err != nil {
-		t.Fatalf("Cannot copy file %s --> %s: %s", srcFilePath, destFilePath, err)
+		t.Fatalf("Cannot copy file %s --> %s: %s", src, dest, err)
 	}
 	defer func() {
-		os.Remove(destFilePath)
+		os.Remove(dest)
 	}()
 
-	bytes, err := ioutil.ReadFile(destFilePath)
+	bytes, err := ioutil.ReadFile(dest)
 	if err != nil {
 		t.Fatalf("Сannot read dest file: %s", err)
 	}
@@ -40,35 +40,35 @@ func TestCopyFile(t *testing.T) {
 
 // TestCopyDir checks that a directory will be copied from source to destination path
 func TestCopyDir(t *testing.T) {
-	srcDir := "/tmp/test-copy-dir1/"
-	destDir := "/tmp/test-copy-dir2/"
+	src := "/tmp/test-copy-dir1/"
+	dest := "/tmp/test-copy-dir2/"
 
 	fileName := "1.txt"
 	childDir := "/child"
 	filePath := childDir + "/" + fileName
 
-	err := os.MkdirAll(srcDir+childDir, os.ModePerm)
+	err := os.MkdirAll(src+childDir, os.ModePerm)
 	if err != nil {
 		t.Fatalf("Сannot create src dir: %s", err)
 	}
 
 	expectedText := "test\ncopy\ndir\n"
-	err = ioutil.WriteFile(srcDir+filePath, []byte(expectedText), 0644)
+	err = ioutil.WriteFile(src+filePath, []byte(expectedText), 0644)
 	if err != nil {
 		t.Fatalf("Сannot create src file: %s", err)
 	}
 
-	err = CopyDir(srcDir, destDir)
+	err = CopyDir(src, dest)
 	defer func() {
 		// clean data after test
-		os.RemoveAll(srcDir)
-		os.RemoveAll(destDir)
+		os.RemoveAll(src)
+		os.RemoveAll(dest)
 	}()
 	if err != nil {
 		t.Fatalf("Cannot copy dir: %s", err)
 	}
 
-	bytes, err := ioutil.ReadFile(destDir + filePath)
+	bytes, err := ioutil.ReadFile(dest + filePath)
 	if err != nil {
 		t.Fatalf("Сannot read dest file: %s", err)
 	}

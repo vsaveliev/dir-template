@@ -4,8 +4,8 @@ import "text/template"
 
 // Config stores template configs
 type Config struct {
-	SrcPath  string
-	DestPath string
+	Src  string
+	Dest string
 
 	LeftDelim  string
 	RightDelim string

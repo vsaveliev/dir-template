@@ -5,8 +5,11 @@ import (
 	"time"
 )
 
-var seededRand *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
+var seededRand *rand.Rand
+
+func init() {
+	seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
 
 // RandomString returns a random string with length = n
 func RandomString(n int) string {

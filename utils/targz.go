@@ -11,29 +11,29 @@ import (
 
 // tarGzArchivator creates *.tar.gz archives from files, dirs
 type tarGzArchivator struct {
-	SrcPath  string
-	DestPath string
+	Src  string
+	Dest string
 
 	tw *tar.Writer
 }
 
 // NewTarGzArchivator returns a new instance of TarGzArchivator
-func newTarGzArchivator(srcPath, destPath string) *tarGzArchivator {
+func newTarGzArchivator(src, dest string) *tarGzArchivator {
 	return &tarGzArchivator{
-		SrcPath:  srcPath,
-		DestPath: destPath,
+		Src:  src,
+		Dest: dest,
 	}
 }
 
-// CreateTarGzArchive creates destPath.tar.gz archive
-func CreateTarGzArchive(srcPath, destPath string) error {
-	t := newTarGzArchivator(srcPath, destPath)
+// CreateTarGzArchive creates dest.tar.gz archive
+func CreateTarGzArchive(src, dest string) error {
+	t := newTarGzArchivator(src, dest)
 	return t.create()
 }
 
 // tarGzFile adds file in tar gz writer
 func (t *tarGzArchivator) tarGzFile(relativePath string, fi os.FileInfo) error {
-	fr, err := os.Open(t.SrcPath + "/" + relativePath)
+	fr, err := os.Open(t.Src + "/" + relativePath)
 	if err != nil {
 		return fmt.Errorf("cannot open file: %s", err)
 	}
@@ -60,27 +60,27 @@ func (t *tarGzArchivator) tarGzFile(relativePath string, fi os.FileInfo) error {
 
 // tarGzDir adds dir in tar gz writer
 func (t *tarGzArchivator) tarGzDir(relativePath string) error {
-	directory, err := os.Open(t.SrcPath + "/" + relativePath)
+	dir, err := os.Open(t.Src + "/" + relativePath)
 	if err != nil {
 		return fmt.Errorf("cannot open src dir: %s", err)
 	}
-	defer directory.Close()
+	defer dir.Close()
 
-	objects, err := directory.Readdir(-1)
+	objects, err := dir.Readdir(-1)
 	if err != nil {
 		return fmt.Errorf("cannot read src dir: %s", err)
 	}
 
 	for _, obj := range objects {
-		srcObjectPath := relativePath + "/" + obj.Name()
+		srcObjPath := relativePath + "/" + obj.Name()
 
 		if obj.IsDir() {
-			err = t.tarGzDir(srcObjectPath)
+			err = t.tarGzDir(srcObjPath)
 			if err != nil {
 				return err
 			}
 		} else {
-			err = t.tarGzFile(srcObjectPath, obj)
+			err = t.tarGzFile(srcObjPath, obj)
 			if err != nil {
 				return err
 			}
@@ -92,12 +92,12 @@ func (t *tarGzArchivator) tarGzDir(relativePath string) error {
 
 // Create makes *.tar.gz
 func (t *tarGzArchivator) create() error {
-	info, err := os.Stat(t.SrcPath)
+	info, err := os.Stat(t.Src)
 	if err != nil {
 		return fmt.Errorf("cannot get info of src dir: %s", err)
 	}
 
-	fw, err := os.Create(t.DestPath)
+	fw, err := os.Create(t.Dest)
 	if err != nil {
 		return fmt.Errorf("cannot create archive: %s", err)
 	}
@@ -114,7 +114,7 @@ func (t *tarGzArchivator) create() error {
 	}
 
 	// srcPath = dir of src file
-	t.SrcPath = strings.TrimSuffix(t.SrcPath, "/"+info.Name())
+	t.Src = strings.TrimSuffix(t.Src, "/"+info.Name())
 
 	return t.tarGzFile(info.Name(), info)
 }

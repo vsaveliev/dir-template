@@ -26,12 +26,12 @@ func (d DirTemplate) Execute() error {
 }
 
 func (d DirTemplate) copyDir() error {
-	_, err := os.Stat(d.DestPath)
+	_, err := os.Stat(d.Dest)
 	if err == nil {
-		return fmt.Errorf("dest path %s already exists", d.DestPath)
+		return fmt.Errorf("dest path %s already exists", d.Dest)
 	}
 
-	err = utils.CopyDir(d.SrcPath, d.DestPath)
+	err = utils.CopyDir(d.Src, d.Dest)
 	if err != nil {
 		return fmt.Errorf("cannot copy dir: %s", err)
 	}
@@ -42,15 +42,15 @@ func (d DirTemplate) copyDir() error {
 		return fmt.Errorf("cannot process templates for rename/move paths: %s", err)
 	}
 	for srcPath, destPath := range pathsMapForMove {
-		_, err := os.Stat(d.DestPath + "/" + srcPath)
+		_, err := os.Stat(d.Dest + "/" + srcPath)
 		if err != nil {
 			// dir doesn't exist
 			continue
 		}
 
-		err = os.Rename(d.DestPath+"/"+srcPath, d.DestPath+"/"+destPath)
+		err = os.Rename(d.Dest+"/"+srcPath, d.Dest+"/"+destPath)
 		if err != nil {
-			return fmt.Errorf("cannot rename/move path %s to %s", d.DestPath+"/"+srcPath, d.DestPath+"/"+destPath)
+			return fmt.Errorf("cannot rename/move path %s to %s", d.Dest+"/"+srcPath, d.Dest+"/"+destPath)
 		}
 	}
 
@@ -60,16 +60,16 @@ func (d DirTemplate) copyDir() error {
 // Process all templates from source path
 func (d DirTemplate) executeDir() error {
 	// check if the source dir exist
-	src, err := os.Stat(d.SrcPath)
+	src, err := os.Stat(d.Src)
 	if err != nil {
 		return err
 	}
 
 	if src.IsDir() {
-		return d.processTemplatesDir(d.SrcPath)
+		return d.processTemplatesDir(d.Src)
 	}
 
-	return d.processTemplateFile(d.SrcPath)
+	return d.processTemplateFile(d.Src)
 }
 
 // ProcessTemplatesDir process templates by path
@@ -131,7 +131,7 @@ func (d DirTemplate) processTemplateFile(path string) error {
 // skipObject checks by list that path can be skipped
 func (d DirTemplate) skipObject(path string) bool {
 	for _, skipPath := range d.SkipPaths {
-		if path == strings.TrimRight(d.SrcPath+"/"+skipPath, "/") {
+		if path == strings.TrimRight(d.Src+"/"+skipPath, "/") {
 			return true
 		}
 	}

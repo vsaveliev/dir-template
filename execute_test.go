@@ -10,15 +10,15 @@ var tmpDir = "/tmp"
 
 // TestProcess checks that template executor can process files and dirs with files
 func TestProcess(t *testing.T) {
-	srcDir := tmpDir + "/test-generation1/"
+	src := tmpDir + "/test-generation1/"
 
 	fileName1 := "1.txt"
 	fileName2 := "2.txt"
 	childDir := "/child"
-	filePath1 := srcDir + childDir + "/" + fileName1
-	filePath2 := srcDir + "/" + fileName2
+	filePath1 := src + childDir + "/" + fileName1
+	filePath2 := src + "/" + fileName2
 
-	err := os.MkdirAll(srcDir+childDir, os.ModePerm)
+	err := os.MkdirAll(src+childDir, os.ModePerm)
 	if err != nil {
 		t.Fatalf("Сannot create src dir: %s", err)
 	}
@@ -40,7 +40,7 @@ func TestProcess(t *testing.T) {
 	data["worldFrom"] = "Earth"
 
 	config := Config{
-		SrcPath:    srcDir,
+		Src:        src,
 		Data:       data,
 		LeftDelim:  "{[(",
 		RightDelim: ")]}",
@@ -53,7 +53,7 @@ func TestProcess(t *testing.T) {
 	}
 	defer func() {
 		// clean data after test
-		os.RemoveAll(srcDir)
+		os.RemoveAll(src)
 	}()
 
 	bytes, err := ioutil.ReadFile(filePath1)
